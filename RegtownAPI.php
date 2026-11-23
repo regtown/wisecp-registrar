@@ -56,11 +56,47 @@ class RegtownAPI
         $this->init_curl();
     }
 
+    private const SECRET_KEYS = ['password', 'client_secret', 'auth_code', 'refresh_token', 'access_token'];
+
     public function writeLog($data)
     {
+        $data = $this->maskSecrets($data);
         if(is_array($data) || is_object($data))
              $data = json_encode($data,JSON_PRETTY_PRINT);
-        file_put_contents($this->debugFile, $data, FILE_APPEND);
+        file_put_contents($this->debugFile, $data . PHP_EOL, FILE_APPEND);
+    }
+
+    /**
+     * Masks credentials and tokens before they are written to the debug log.
+     */
+    private function maskSecrets($data)
+    {
+        if (is_string($data)) {
+            $trimmed = ltrim($data);
+            if ($trimmed !== '' && ($trimmed[0] === '{' || $trimmed[0] === '[') && self::isJson($data)) {
+                return $this->maskSecrets(json_decode($data, true));
+            }
+            $pattern = '/([?&](?:' . implode('|', self::SECRET_KEYS) . ')=)[^&]*/i';
+            return preg_replace($pattern, '$1***', $data);
+        }
+
+        if (is_object($data)) {
+            $data = json_decode(json_encode($data), true);
+        }
+
+        if (is_array($data)) {
+            foreach ($data as $key => $value) {
+                if (in_array(strtolower((string)$key), self::SECRET_KEYS, true)) {
+                    $data[$key] = '***';
+                } elseif (strtolower((string)$key) === 'authorization') {
+                    $data[$key] = 'Bearer ***';
+                } else {
+                    $data[$key] = $this->maskSecrets($value);
+                }
+            }
+        }
+
+        return $data;
     }
 
     public function enableDebug()
@@ -73,7 +109,8 @@ class RegtownAPI
         $this->http_client = curl_init();
         curl_setopt($this->http_client, CURLOPT_HEADER, 0);
         curl_setopt($this->http_client, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($this->http_client, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($this->http_client, CURLOPT_SSL_VERIFYPEER, 1);
+        curl_setopt($this->http_client, CURLOPT_SSL_VERIFYHOST, 2);
         curl_setopt($this->http_client, CURLOPT_FOLLOWLOCATION, 1);
         if (isset($this->curl_options) && $this->curl_options) {
             foreach ($this->curl_options as $key => $curl_option) {

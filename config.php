@@ -2,7 +2,7 @@
 return [
     'meta' => [
         'name' => 'Regtown',
-        'version' => '1.0.0',
+        'version' => '1.0.1',
         'logo' => 'regtown.png',
     ],
     'settings' => [

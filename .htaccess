@@ -1,4 +1,10 @@
-<Files "token.data">
-  Order Allow,Deny
-  Deny from all
-</Files>
+# Module runtime files (API token, debug log, custom cURL options)
+<FilesMatch "^(token.*\.data|debug\.log|custom_curl_options\.json)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order Allow,Deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
