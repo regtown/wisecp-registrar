@@ -1,0 +1,4 @@
+<Files "token.data">
+  Order Allow,Deny
+  Deny from all
+</Files>
