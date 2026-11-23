@@ -1,0 +1,9 @@
+# Module runtime files (API tokens)
+token*.data
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log

@@ -1,0 +1,4 @@
+<FilesMatch "^token.*\.data$">
+  Order Allow,Deny
+  Deny from all
+</FilesMatch>
